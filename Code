@@ -1,0 +1,123 @@
+#include <iostream>
+#include <vector>
+#include <cstdlib>
+#include <ctime>
+
+using namespace std;
+
+// function to print the cards in a player's hand
+void printHand(vector<int> hand) {
+    for(int i=0; i<hand.size(); i++) {
+        cout << hand[i] << " ";
+    }
+    cout << endl;
+}
+
+// function to calculate the total value of a hand
+int calculateHandValue(vector<int> hand) {
+    int totalValue = 0;
+    int aceCount = 0;
+    for(int i=0; i<hand.size(); i++) {
+        int cardValue = hand[i] % 13 + 1;
+        if(cardValue > 10) {
+            cardValue = 10;
+        }
+        if(cardValue == 1) {
+            aceCount++;
+            cardValue = 11;
+        }
+        totalValue += cardValue;
+    }
+    while(totalValue > 21 && aceCount > 0) {
+        totalValue -= 10;
+        aceCount--;
+    }
+    return totalValue;
+}
+
+int main() {
+    srand(time(NULL)); // initialize the random number generator
+    
+    // initialize the deck of cards
+    vector<int> deck;
+    for(int i=1; i<=52; i++) {
+        deck.push_back(i);
+    }
+    
+    int playerWins = 0;
+    int dealerWins = 0;
+    int ties = 0;
+    
+    for(int i=0; i<100; i++) { // simulate 100 hands
+        // shuffle the deck
+        for(int j=0; j<deck.size(); j++) {
+            int randomIndex = rand() % deck.size();
+            int temp = deck[j];
+            deck[j] = deck[randomIndex];
+            deck[randomIndex] = temp;
+        }
+        
+        // deal the initial cards
+        vector<int> playerHand;
+        vector<int> dealerHand;
+        playerHand.push_back(deck.back());
+        deck.pop_back();
+        dealerHand.push_back(deck.back());
+        deck.pop_back();
+        playerHand.push_back(deck.back());
+        deck.pop_back();
+        dealerHand.push_back(deck.back());
+        deck.pop_back();
+        
+        // print the hands
+        cout << "Player's hand: ";
+        printHand(playerHand);
+        cout << "Dealer's hand: " << dealerHand[0] << " ?" << endl;
+        
+        // player's turn
+        bool playerDone = false;
+        while(!playerDone) {
+            int handValue = calculateHandValue(playerHand);
+            if(handValue > 21) {
+                cout << "Player busts!" << endl;
+                dealerWins++;
+                playerDone = true;
+                break;
+            }
+            else {
+                char choice;
+                cout << "Do you want to hit (h) or stay (s)? ";
+                cin >> choice;
+                if(choice == 'h') {
+                    playerHand.push_back(deck.back());
+                    deck.pop_back();
+                }
+                else {
+                    playerDone = true;
+                }
+            }
+        }
+        
+        // dealer's turn
+        bool dealerDone = false;
+        while(!dealerDone) {
+            int handValue = calculateHandValue(dealerHand);
+            if(handValue > 21) {
+                cout << "Dealer busts!" << endl;
+                playerWins++;
+                dealerDone = true;
+                break;
+            }
+            if(handValue >= 17) {
+                dealerDone = true;
+            }
+            else {
+                dealerHand.push_back(deck.back());
+                deck.pop_back();
+            }
+        }
+
+        // determine the winner
+        int playerHandValue = calculateHandValue(playerHand);
+    }
+}
